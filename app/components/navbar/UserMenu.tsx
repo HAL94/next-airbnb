@@ -9,6 +9,7 @@ import React, { useCallback, useState } from 'react';
 import { AiOutlineMenu } from 'react-icons/ai';
 import Avatar from '../avatar/Avatar';
 import MenuItem from './MenuItem';
+import { useRouter } from 'next/navigation';
 
 interface Props {
   currentUser: SafeUser | null
@@ -19,6 +20,7 @@ const UserMenu: React.FC<Props> = ({ currentUser }) => {
   const registerModal = useRegisterModal();
   const loginModal = useLoginModal();
   const rentModal = useRentModal();
+  const router = useRouter();
 
   const toggleOpen = useCallback(() => {
     setIsOpen((value) => !value);
@@ -87,21 +89,21 @@ const UserMenu: React.FC<Props> = ({ currentUser }) => {
           "
         >
           <div className="flex flex-col cursor-pointer">
-            { currentUser ? (
+            {currentUser ? (
               <React.Fragment>
-                <MenuItem onClick={() => {}} label={'My Trips'} />
-                <MenuItem onClick={() => {}} label={'My Favourites'} />
-                <MenuItem onClick={() => {}} label={'My Reservation'} />
-                <MenuItem onClick={() => {}} label={'My Properties'} />
+                <MenuItem onClick={() => router.push('/trips')} label={'My Trips'} />
+                <MenuItem onClick={() => router.push('/favorites')} label={'My Favourites'} />
+                <MenuItem onClick={() => router.push('/reservations')} label={'My Reservation'} />
+                <MenuItem onClick={() => router.push('/properties')} label={'My Properties'} />
                 <MenuItem onClick={rentModal.onOpen} label={'Airbnb My Home'} />
-                <hr/>
+                <hr />
                 <MenuItem onClick={() => signOut()} label={'Logout'} />
               </React.Fragment>
             ) : (
               <React.Fragment>
                 <MenuItem onClick={loginModal.onOpen} label={'Login'} />
                 <MenuItem onClick={registerModal.onOpen} label={'Signup'} />
-              </React.Fragment>  
+              </React.Fragment>
             )}
           </div>
         </div>

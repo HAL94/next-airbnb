@@ -5,12 +5,16 @@ import useRentModal from '@/app/hooks/use-rent-modal';
 import Heading from '../heading/Heading';
 import { categories } from '../navbar/Categories';
 import CategoryInput from '../input/CategoryInput';
-import { FieldValues, useForm } from 'react-hook-form';
+import { FieldValues, SubmitHandler, useForm } from 'react-hook-form';
 import CountrySelect from '../input/CountrySelect';
 // import Map from '../map/Map';
 import dynamic from 'next/dynamic';
 import Counter from '../counter/Counter';
 import { ImageUpload } from '../input/ImageUpload';
+import Input from '../input/Input';
+import axios from 'axios';
+import { useRouter } from 'next/navigation';
+import { toast } from 'react-hot-toast';
 
 enum STEPS {
   CATEGORY = 0,
@@ -22,9 +26,12 @@ enum STEPS {
 }
 const RentModal = () => {
   const rentModal = useRentModal();
+  const router = useRouter()
   const [step, setStep] = useState(STEPS.CATEGORY);
+  const [isLoading, setIsLoading] = useState(false);
   const onBack = () => setStep((value) => value - 1);
   const onNext = () => setStep((value) => value + 1);
+
   const {
     register,
     handleSubmit,
@@ -45,11 +52,36 @@ const RentModal = () => {
       description: '',
     },
   });
+
   const categoryWatch = watch('category');
   const locationWatch = watch('location');
   const guestCountWatch = watch('guestCount');
   const roomCountWatch = watch('roomCount');
   const bathroomCountWatch = watch('bathroomCount');
+  const imageSrcWatch = watch('imageSrc');
+
+  const onSubmit: SubmitHandler<FieldValues> = (data) => {
+    if (step !== STEPS.PRICE) {
+      return onNext();
+    }
+
+    setIsLoading(true);
+
+    axios.post('/api/listings', data)
+      .then(() => {
+        toast.success('Listing Created')
+        router.refresh()
+        reset()
+        setStep(STEPS.CATEGORY)
+        rentModal.onClose()
+      })
+      .catch((error) => {
+        toast.error('Something went wrong!')
+      })
+      .finally(() => {
+        setIsLoading(false)
+      })
+  }
 
   const Map = useMemo(
     () =>
@@ -157,10 +189,34 @@ const RentModal = () => {
           title="Add a photo of your place"
           subtitle="Show guests what your place looks like"
         />
-        <ImageUpload />
+        <ImageUpload onChange={(value) => {
+          console.log('received value', value);
+          setCustomValue('imageSrc', value)
+        }} value={imageSrcWatch} />
       </div>
     );
   }
+
+  if (step === STEPS.DESCRIPTION) {
+    bodyContent = (
+      <div className='flex flex-col gap-8'>
+        <Heading title='How would you describe your place?' subtitle='Short and sweet works best' />
+        <Input id='title' label='Title' disabled={isLoading} errors={errors} register={register} required />
+        <hr/>
+        <Input id='description' label='Description' disabled={isLoading} errors={errors} register={register} required />
+      </div>
+    )
+  }
+  
+  if (step === STEPS.PRICE) {
+    bodyContent = (
+      <div className='flex flex-col gap-8'>
+        <Heading title='Now set your price' subtitle='How much do you charge per night?' />
+        <Input formatPrice id='price' label='Price' disabled={isLoading} errors={errors} register={register} type='number' required />
+      </div>
+    )
+  }
+  
   return (
     <Modal
       isOpen={rentModal.isOpen}
@@ -169,7 +225,7 @@ const RentModal = () => {
       secondaryActionLabel={secondaryActionLabel}
       secondaryAction={step === STEPS.CATEGORY ? undefined : onBack}
       onClose={rentModal.onClose}
-      onSubmit={onNext}
+      onSubmit={handleSubmit(onSubmit)}
       body={bodyContent}
     />
   );
