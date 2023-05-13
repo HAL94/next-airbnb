@@ -76,7 +76,7 @@ export default async function getListings(
             }
         }
 
-        
+
         const listings = await prisma.listing.findMany({
             where: query,
             orderBy: {
@@ -89,6 +89,7 @@ export default async function getListings(
             createdAt: listingItem?.createdAt?.toISOString()
         }));
     } catch (error: any) {
+        console.log('Failed fetching listings', error)
         throw new Error(error);
     }
 }

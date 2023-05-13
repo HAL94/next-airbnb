@@ -6,6 +6,8 @@ import EmptyListing from "./components/listings/EmptyListing";
 import ListingCard from "./components/listings/ListingCard";
 import { SafeListing } from "./types";
 
+export const dynamic = 'force-dynamic';
+
 interface Props {
   searchParams: IListingParams
 }
